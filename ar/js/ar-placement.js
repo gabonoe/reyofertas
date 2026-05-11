@@ -30,7 +30,7 @@ export const initArPlacementScene = ({ onPlaced, onHintChange } = {}) => {
     const loader = new GLTFLoader();
     loader.setDRACOLoader(dracoLoader);
 
-    const gltf = await loader.loadAsync('assets/3D/reyperf.glb');
+    const gltf = await loader.loadAsync('../assets/3D/reyperf.glb');
     const model = gltf.scene;
 
     // Scale to target height (1.7m) then 1.5X multiplier
