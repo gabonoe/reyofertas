@@ -104,15 +104,12 @@ function stopBackgroundMusic() {
 function updateMusicButton() {
   const musicBtn = document.getElementById('btn-music');
   if (musicBtn) {
-    const icon = musicBtn.querySelector('.material-icons');
-    if (icon) {
-      if (backgroundMusic.paused) {
-        icon.textContent = 'music_off';
-        musicBtn.classList.add('muted');
-      } else {
-        icon.textContent = 'music_note';
-        musicBtn.classList.remove('muted');
-      }
+    if (backgroundMusic.paused) {
+      musicBtn.classList.remove('audio-on');
+      musicBtn.classList.add('audio-off');
+    } else {
+      musicBtn.classList.remove('audio-off');
+      musicBtn.classList.add('audio-on');
     }
   }
 }

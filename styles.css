@@ -318,18 +318,30 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background .2s ease, color .2s ease, border-color .2s ease;
+  transition: all 0.2s;
 }
-
-.btn-music:hover,
+.btn-music:hover {
+  transform: scale(1.1);
+}
 .btn-music:active {
-  background: rgba(77, 227, 199, 0.2);
+  transform: scale(0.95);
 }
 
-.btn-music.muted {
-  color: #ff4444;
-  border-color: #ff4444;
-  opacity: 1;
+.btn-music img {
+  width: 50%;
+  height: 50%;
+}
+
+.btn-music.audio-on {
+  background: rgba(76, 175, 80, 0.7);
+  border-color: #81c784;
+  color: #4de3c7;
+}
+
+.btn-music.audio-off {
+  background: rgba(244, 67, 54, 0.7);
+  border-color: #e57373;
+  color: #4de3c7;
 }
 
 .btn-play {
