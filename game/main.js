@@ -556,6 +556,9 @@ function startGame() {
   const inputName = playerNameInput.value.trim();
   playerName = inputName || 'Jugador';
   
+  // Unmute all audios (they may have been muted during loading unlock)
+  const allAudiosMute = [bgMusic, ruidoG, silbStart, silbEnd, kickSound, golSound, abuSound];
+  allAudiosMute.forEach(audio => { if (audio) audio.muted = false; });
   // Reset all audio elements to ensure they play from start
   // kickSound excluded from load() to avoid decode delay on mobile
   const allAudios = [bgMusic, ruidoG, silbStart, silbEnd, golSound, abuSound];
@@ -1769,10 +1772,7 @@ btnStart.addEventListener('click', async () => {
           p.then(() => {
             audio.pause();
             audio.currentTime = 0;
-            setTimeout(() => { audio.muted = false; }, 100);
-          }).catch(() => {
-            audio.muted = false;
-          });
+          }).catch(() => {});
         }
       }
     });
