@@ -182,11 +182,11 @@ html, body {
   filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
 }
 #btn-audio img {
-  width: 80%;
-  height: 80%;
+  width: 60%;
+  height: 60%;
 }
 #btn-audio img.muted {
-  filter: sepia(1) hue-rotate(-50deg) saturate(5);
+  filter: sepia(1) hue-rotate(320deg) saturate(3);
 }
 
 /* Mode label (hidden, kept for JS compatibility) */
