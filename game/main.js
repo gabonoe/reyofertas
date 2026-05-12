@@ -1886,9 +1886,13 @@ btnExit.addEventListener('click', () => {
   state.playing = false;
   state.shots = 0;
   state.goals = 0;
+  kickInProgress = false;
+  pointerStart = null;
+  pointerCurrent = null;
   bgMusic.pause();
   bgMusic.currentTime = 0;
   ruidoG.pause();
   ruidoG.currentTime = 0;
+  returnReyToIdle();
   resetBall();
 });
