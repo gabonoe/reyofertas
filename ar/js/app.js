@@ -247,7 +247,7 @@ const iconAudio = document.getElementById('icon-audio');
 btnAudio.addEventListener('click', () => {
   audioMuted = !audioMuted;
   if (bgMusic) bgMusic.muted = audioMuted;
-  iconAudio.style.opacity = audioMuted ? '0.5' : '1';
+  iconAudio.classList.toggle('muted', audioMuted);
 });
 
 btnSwitch.addEventListener('click', switchMode);
