@@ -176,9 +176,9 @@ html, body {
   align-items: center;
   justify-content: center;
 }
-#btn-audio img {
-  width: 28px;
-  height: 28px;
+#btn-audio .material-icons {
+  font-size: 28px;
+  color: #fff;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
 }
 

@@ -60,12 +60,13 @@ export const initReyArScene = (options = {}) => {
     const loader = new GLTFLoader();
     loader.setDRACOLoader(dracoLoader);
 
-    const gltf = await loader.loadAsync('assets/3D/somybarb.glb');
+    console.log('[Selfie AR] Loading model from ../assets/3D/somybarb.glb');
+    const gltf = await loader.loadAsync('../assets/3D/somybarb.glb');
 
     // Log mesh names for reference
     const names = [];
     gltf.scene.traverse(o => { if (o.isMesh) names.push(o.name || '(unnamed)'); });
-    console.log('somybarb.glb meshes:', names);
+    console.log('[Selfie AR] somybarb.glb meshes:', names);
 
     // Wrap entire scene in a Group so we can move/rotate/scale as one unit
     hatGroup = new THREE.Group();
@@ -79,13 +80,19 @@ export const initReyArScene = (options = {}) => {
         // Cull back faces so inverted normals are not rendered
         if (o.material) {
           const mats = Array.isArray(o.material) ? o.material : [o.material];
-          mats.forEach(m => { m.side = THREE.FrontSide; });
+          mats.forEach(m => {
+            m.side = THREE.FrontSide;
+            // Samsung-specific: ensure materials are properly initialized
+            if (m.map && !m.map.image) {
+              console.warn('[Selfie AR] Material has invalid texture map:', m);
+            }
+          });
         }
       }
     });
     scene.add(hatGroup);
 
-    console.log('somybarb.glb loaded ✓');
+    console.log('[Selfie AR] somybarb.glb loaded ✓');
     dracoLoader.dispose();
   };
 
