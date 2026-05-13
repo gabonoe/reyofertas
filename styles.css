@@ -379,12 +379,12 @@ html, body {
 .soccer-icon {
   width: 19px;
   height: 19px;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .btn-play img,
 .btn-play span {
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .model-container {
