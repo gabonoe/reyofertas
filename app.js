@@ -12,7 +12,7 @@
   }
 
   document.getElementById('btn-comenzar').addEventListener('click', () => {
-    showScreen('instrucciones');
+    showScreen('opciones');
   });
 
   document.querySelectorAll('.menu-btn').forEach(btn => {
@@ -25,7 +25,7 @@
 
   document.querySelectorAll('.btn-back').forEach(btn => {
     btn.addEventListener('click', () => {
-      const target = btn.getAttribute('data-target') || 'instrucciones';
+      const target = btn.getAttribute('data-target') || 'opciones';
       showScreen(target);
     });
   });
