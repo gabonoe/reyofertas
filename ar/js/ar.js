@@ -18,6 +18,7 @@ export const initReyArScene = (options = {}) => {
   let hatGroup   = null;   // wrapper Group for the loaded model
   let faceLandmarker = null;
   let videoElement   = null;
+  let ownedStream    = null; // only set if WE created the camera stream (not XR8's)
 
   // Smoothed state
   const _smoothPos  = new THREE.Vector3();
@@ -95,35 +96,72 @@ export const initReyArScene = (options = {}) => {
     try {
       console.log('Initializing FaceLandmarker…');
 
-      videoElement = document.createElement('video');
-      videoElement.style.display = 'none';
-      videoElement.autoplay    = true;
-      videoElement.playsInline = true;
-      videoElement.muted       = true;
-      document.body.appendChild(videoElement);
+      // ── Reuse XR8's front-camera video element to avoid dual-stream conflict on Samsung ──
+      // XR8 already owns the front camera; a second getUserMedia call fails silently on Samsung.
+      const allVideos = Array.from(document.querySelectorAll('video'));
+      const xrVideo   = allVideos.find(v => v.srcObject && !v.paused && v.videoWidth > 0);
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: 640, height: 480 },
-        audio: false,
-      });
-      videoElement.srcObject = stream;
-      await new Promise(res => { videoElement.onloadedmetadata = () => videoElement.play().then(res); });
+      if (xrVideo) {
+        videoElement = xrVideo;
+        ownedStream  = null; // XR8 owns it — do not stop it on cleanup
+        console.log('Reusing XR8 camera feed:', xrVideo.videoWidth, '×', xrVideo.videoHeight);
+      } else {
+        // Fallback: create own stream (desktop or unexpected state)
+        videoElement = document.createElement('video');
+        videoElement.style.display = 'none';
+        videoElement.autoplay    = true;
+        videoElement.playsInline = true;
+        videoElement.muted       = true;
+        document.body.appendChild(videoElement);
+
+        ownedStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: false,
+        });
+        videoElement.srcObject = ownedStream;
+
+        // Wait for video to be truly ready (Samsung fires onloadedmetadata early)
+        await new Promise(res => {
+          const check = () => {
+            if (videoElement.readyState >= 2 && videoElement.videoWidth > 0) {
+              res();
+            } else {
+              videoElement.onloadedmetadata = null;
+              setTimeout(check, 100);
+            }
+          };
+          videoElement.onloadedmetadata = () => videoElement.play().then(check).catch(check);
+          if (videoElement.readyState >= 2 && videoElement.videoWidth > 0) {
+            videoElement.play().then(check).catch(check);
+          }
+        });
+      }
       console.log('Camera ready:', videoElement.videoWidth, '×', videoElement.videoHeight);
 
       const vision = await FilesetResolver.forVisionTasks(
         'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/wasm'
       );
-      faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+
+      // Try GPU delegate first, fall back to CPU for Samsung/Exynos/Mali GPUs
+      const createLandmarker = async (delegate) => FaceLandmarker.createFromOptions(vision, {
         baseOptions: {
           modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-          delegate: 'GPU',
+          delegate,
         },
         runningMode: 'VIDEO',
         numFaces: 1,
         outputFaceBlendshapes: false,
         outputFacialTransformationMatrixes: false,
       });
-      console.log('FaceLandmarker ready ✓');
+
+      try {
+        faceLandmarker = await createLandmarker('GPU');
+        console.log('FaceLandmarker ready ✓ (GPU)');
+      } catch (gpuErr) {
+        console.warn('GPU delegate failed, falling back to CPU:', gpuErr);
+        faceLandmarker = await createLandmarker('CPU');
+        console.log('FaceLandmarker ready ✓ (CPU fallback)');
+      }
       processFrame();
     } catch (err) {
       console.error('FaceLandmarker init error:', err);
@@ -259,5 +297,17 @@ export const initReyArScene = (options = {}) => {
       });
     },
     onUpdate: () => {},
+    onDetach: () => {
+      // Stop MediaPipe loop
+      faceLandmarker = null;
+      if (hatGroup) { hatGroup.visible = false; }
+      // Only release the camera stream if WE created it (not XR8's stream)
+      if (ownedStream) {
+        ownedStream.getTracks().forEach(t => t.stop());
+        ownedStream = null;
+        if (videoElement) { videoElement.srcObject = null; videoElement.remove(); }
+      }
+      videoElement = null;
+    },
   };
 };
